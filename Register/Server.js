@@ -44,16 +44,12 @@ const channel = await createConnection()
 channel.consume('registro', async (message) => {
     content = JSON.parse(message.content.toString())
     console.log("Mensaje Recibido desde la cola registro")
-    console.log(content)
-
     channel.ack(message);
 
-    //let result = await userController.createUserController(content)
+    let result = await userController.createUserController(content)
 
-    const message2 = {
-      status: "Success",
-      text: "El proceso fue exitoso"
-    };
+    console.log("Vengo del controller")
+    console.log(result)
 
-    channel.sendToQueue('registroRespuesta', Buffer.from(JSON.stringify(content), {persistent: true}))
+    channel.sendToQueue('registroRespuesta', Buffer.from(JSON.stringify(result), {persistent: true}))
 })

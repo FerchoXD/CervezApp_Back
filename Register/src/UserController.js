@@ -1,7 +1,11 @@
-//import userService from "./UserService.js"
+import * as userService from "./UserService.js"
 
-export default async function createUserController(userDetails){
-    console.log(userDetails)
-    //let result =  await userService.createUserService(userDetails)
-    return "hola";
+async function createUserController(userDetails){
+    console.log("Vengo del Servicio")
+    let result =  await userService.createUserService(userDetails)
+    console.log("Vego despues del servicio")
+    console.log(result)
+    return result;
 }
+
+export { createUserController }

@@ -14,4 +14,4 @@ db.authenticate()
         console.log("El error de la base de datos es: " + error)
     })
 
-export default db;
+export { db }

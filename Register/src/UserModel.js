@@ -1,9 +1,7 @@
-import { DataTypes, Model } from "sequelize";
-import db from "../DataBase/DBConnection"
+import { DataTypes } from "sequelize";
+import { db } from "../DataBase/DBConnection.js"
 
-class User extends Model { };
-
-User.init({
+const userModel = db.define( 'user', {
     id:{
         type: DataTypes.BIGINT,
         autoIncrement: true,
@@ -23,12 +21,34 @@ User.init({
     },
     image:{
         type: DataTypes.STRING
+    },
+    createdAt:{
+        type: DataTypes.DATE,
+        defaultValue: Date.now,
+        allowNull: false
+    },
+    updateAt:{
+        type: DataTypes.DATE,
+        defaultValue: ()=>{
+            Date.now();
+        }
     }
 }, {
+    hooks: {
+        beforeUpdate: (user) => {
+            user.updateAt = Date.now()
+        }
+    },
     sequelize: db,
     tableName: 'users'
 })
 
-User.sync();
+db.sync()
+    .then(() => {
+        console.log("Tablas Creadas")
+    })
+    .catch((error) => {
+        console.log("Error al crear las tablas: " + error)
+    })
 
-export default User;
+export { userModel };

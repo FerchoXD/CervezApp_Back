@@ -63,8 +63,10 @@ app.post("/register", async (req, res) => {
   let response = await prueba()
   console.log("---")
   console.log(response)
-  res.send({ Message: response })
+  res.send(response)
 });
+
+//Estas son funciones preventivas
 
 async function prueba(){
   console.log("Funcion Prueba")
@@ -81,6 +83,6 @@ async function prueba(){
       });
     });
   } catch (error) {
-    console.log("Algo sucedio mal");
+    console.log("Algo sucedio mal: " + error);
   }
 }
