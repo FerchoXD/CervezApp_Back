@@ -61,7 +61,7 @@ async function crear(userModel, newUser) {
   return await new Promise(function creando(resolve, reject) {
     try {
       userModel
-        .create(newUser)
+.create(newUser)
         .then((user) => {
           console.log("Registro Creado " + user);
           resolve({

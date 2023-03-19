@@ -43,19 +43,11 @@ async function createConnection() {
   return channel;
 }
 
-createConnection()
-  .then(() => {
-    console.log("Funcionando");
-  })
-  .catch((error) => {
-    console.log(error);
-  });
-
-const channel = await createConnection();
-
 //Rutas Para api
 
 app.post("/register", upload.single("my-file") ,async (req, res) => {
+
+  const channel = await createConnection();
 
   let queueRegistro = "registro";
 
@@ -65,19 +57,19 @@ app.post("/register", upload.single("my-file") ,async (req, res) => {
       password: req.body.password,
       image: req.file.originalname
     };
-
+    
     const sent = await channel.sendToQueue(queueRegistro, Buffer.from(JSON.stringify(message)),
       { persistent: true }
     );
-  
     sent ? console.log(`Enviando mensaje a la cola "${queueRegistro}"`, message) : console.log("Fallo todo");
   
     try {
-      let response = await prueba();
+      let response = await consumeQueue(channel);
       console.log("***");
       console.log(response);
-      res.status(200).send(response);
+      res.status(201).send(response);
       console.log("Finalizo el proceso")
+      res.end();
     } catch (error) {
       console.log("Error en la prueba: ", error);
       res.status(500).send({ error: "Ocurrió un error en la prueba" });
@@ -87,14 +79,16 @@ app.post("/register", upload.single("my-file") ,async (req, res) => {
 
 //Estas son funciones preventivas
 
-async function prueba(){
-  console.log("Funcion Prueba")
-    return await new Promise(function prueba2(resolve, reject) {
-      channel.consume('registroRespuesta', async (messageReceived) => {
-        content = JSON.parse(messageReceived.content.toString());
-        console.log(content);
-        resolve(content);
-        channel.ack(messageReceived);
-      });
+async function consumeQueue(channel){
+  return new Promise(async function consumingQueue(resolve, reject) {
+    await channel.consume('registroRespuesta', async (messageReceived) => {
+      console.log("Consume Queue")
+      console.log(messageReceived)
+      content = JSON.parse(messageReceived.content.toString());
+      channel.ack(messageReceived);
+      console.log(content)
+      await channel.close();
+      resolve(content)
     })
+  })
 }

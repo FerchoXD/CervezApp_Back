@@ -1,7 +1,6 @@
 import * as userService from "./UserService.js"
 
 async function createUserController(userDetails){
-    console.log("Vengo del Servicio")
     let result =  await userService.createUserService(userDetails)
     console.log("Vego despues del servicio")
     console.log(result)
@@ -9,7 +8,7 @@ async function createUserController(userDetails){
 }
 
 async function setUserImage(userDetails){
-    
+
 }
 
 export { createUserController }
