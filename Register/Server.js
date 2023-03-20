@@ -47,7 +47,7 @@ channel.consume('registro', async (message) => {
     console.log(result)
 
     const sent = await channel.sendToQueue('registroRespuesta', Buffer.from(JSON.stringify(result), {persistent: true}))
-    //sent ? console.log(`Enviando mensaje de respuesta a la cola `, message) : console.log("Fallo todo");
+    sent ? console.log(`Enviando mensaje de respuesta a la cola `, message) : console.log("Fallo todo");
 })
 
 channel.consume('registroImagenRespuesta', async (message) => {
