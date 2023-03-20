@@ -13,7 +13,8 @@ const userModel = db.define( 'user', {
     },
     email:{
         type: DataTypes.STRING,
-        allowNull: false
+        allowNull: false,
+        unique: true
     },
     password:{
         type: DataTypes.STRING,
@@ -22,12 +23,15 @@ const userModel = db.define( 'user', {
     image:{
         type: DataTypes.STRING
     },
+    KeyBucket:{
+        type: DataTypes.STRING
+    },
     createdAt:{
         type: DataTypes.DATE,
         defaultValue: Date.now,
         allowNull: false
     },
-    updateAt:{
+    updatedAt:{
         type: DataTypes.DATE,
         defaultValue: ()=>{
             Date.now();

@@ -4,93 +4,72 @@ import fs from "fs";
 import path, { resolve } from "path";
 import emailValidator from "email-validator";
 import dotenv from "dotenv";
-import AWS from "aws-sdk"
+import AWS from "aws-sdk";
 
-dotenv.config({path:"./src/AWS/Credentials/.env"})
+dotenv.config({ path: "./src/AWS/Credentials/.env" });
 
 AWS.config.update({
-  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  region: 'us-east-1'
+  //accessKeyId: "{aqui ira tu access key}",
+  //secretAccessKey: "{aqui ira tu secret key}"",
+  //region: "{aqui ira tu region}",
 });
 
 const s3 = new AWS.S3();
 
 const params = {
   Bucket: "users-image-cervezaapp",
-  ACL: 'public-read',
+  ACL: "public-read",
 };
 
-s3.createBucket(params, function(err, data) {
+s3.createBucket(params, function (err, data) {
   if (err) {
-    console.log('Error al crear el bucket', err);
+    console.log("Error al crear el bucket", err);
   } else {
-    console.log('Bucket creado correctamente', data.Location);
-  }
-});
-
-const policyParams = {
-  Bucket: 'users-image-cervezaapp',
-  Policy: `{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Sid": "PublicReadGetObject",
-            "Effect": "Allow",
-            "Principal": "*",
-            "Action": [
-                "s3:GetObject"
-            ],
-            "Resource": [
-                "arn:aws:s3:::users-image-cervezaapp/*"
-            ]
-        }
-    ]
-}`
-};
-
-s3.putBucketPolicy(policyParams, function(err, data) {
-  if (err) {
-    console.log('Error al establecer la política del bucket', err);
-  } else {
-    console.log('Política del bucket establecida correctamente');
+    console.log("Bucket creado correctamente", data.Location);
   }
 });
 
 const saltRounds = 10;
 
 async function createUserService(userDetails) {
-  console.log("Funcion de crear del servicio")
   const correoValidado = validarCorreo(userDetails.email);
   const ext = path.extname(userDetails.image);
-  const filepath = "src/Files/Images/" + userDetails.image
+  const filepath = "src/Files/Images/" + userDetails.image;
+  const timestamp = new Date().getTime();
+  let key = timestamp + " - " + userDetails.image
   if (correoValidado && (ext === ".jpg" || ext === ".jpeg" || ext === ".png")) {
     let passwordHasheada = await hasheo(userDetails.password, saltRounds);
-    let url = await setImage(filepath, userDetails.image)
+    let url = await setImage(filepath, key);
     const newUser = {
       name: userDetails.name,
       email: userDetails.email,
       password: passwordHasheada,
-      image: url,
+      image: url.url,
+      KeyBucket: url.keyBucket
     };
     const response = await crear(userModel, newUser);
-    fs.unlink(filepath, (error) => {
-      if(error){
-        console.log(error)
-      }else{
-        console.log("Se ha borrado exitosamente")
-      }
-    })
-    return response;
+    if(response !== undefined){
+      deleteImageServer(filepath)
+      return response;
+    }else{
+      deletingImageBucket(key)
+      deleteImageServer(filepath)
+      return {status: false, message: "El correo que estas usando ya existe"}
+    }
   } else {
     fs.unlink(filepath, (error) => {
-      if(error){
-        console.log(error)
-      }else{
-        console.log("Se ha borrado exitosamente")
+      if (error) {
+        console.log(error);
+      } else {
+        console.log("Se ha borrado exitosamente");
       }
-    })
-    return({status: false, message: "Verifica que tu correo que proporcionaste existe o que haya subido una imagen"})
+    });
+    deletingImageBucket(key)
+    return {
+      status: false,
+      message:
+        "Verifica que tu correo que proporcionaste existe o que haya subido una imagen",
+    };
   }
 }
 
@@ -106,73 +85,83 @@ async function hasheo(password, saltRounds) {
   });
 }
 
-function validarCorreo(email) {
-  if (emailValidator.validate(email)) {
-    return true;
-  } else {
-    return false;
-  }
-}
-
-async function crear(userModel, newUser) {
-  console.log("Entro a la funcion de crear");
-  console.log(newUser)
-  return await new Promise(function creando(resolve, reject) {
-    try {
-      userModel.create(newUser)
-        .then((user) => {
-          console.log("Registro Creado " + user);
-          resolve({
-            status: 201,
-            body: {
-              id: user.dataValues.id,
-              name: user.dataValues.name,
-              email: user.dataValues.email,
-              image: user.dataValues.image
-            },
-            message: "The user was created successfully",
-          });
-        })
-        .catch((error) => {
-          console.log("Algo salio mal " + error);
-          reject({
-            status: 400,
-            message: "The user wasn not created",
-          });
-        });
-    } catch {
-      reject({
-        status: 400,
-        message: "The user wasn not created",
-      });
+function deleteImageServer(filepath){
+  fs.unlink(filepath, (error) => {
+    if (error) {
+      console.log(error);
+    } else {
+      console.log("Se ha borrado exitosamente");
     }
   });
 }
 
-async function setImage(filepath, filename){
+function validarCorreo(email) {
+  return !!(emailValidator.validate(email));
+}
+
+async function crear(userModel, newUser) {
+  console.log("Entro a la funcion de crear del servicio");
+  console.log(newUser);
+  console.log(newUser.KeyBucket)
+  return await new Promise(async function creando(resolve, reject) {
+    try{
+      const result = await userModel.create(newUser).catch((error) => {console.log("Se controlo la promesa")})
+      return resolve(result)
+    }catch{
+      console.log("Algo sucedio mal dentro de la funcion crear y cai en el catch")
+      return reject({status: false, message: "El correo que estas usando ya existe"})
+    }
+  });
+}
+
+async function setImage(filepath, key) {
   const file = fs.readFileSync(filepath);
   const params = {
-    Bucket: 'users-image-cervezaapp',
-    Key: filename, // Puedes cambiar el nombre del archivo aquí si lo deseas
+    Bucket: "users-image-cervezaapp",
+    Key: key, // Puedes cambiar el nombre del archivo aquí si lo deseas
     Body: file,
-    ACL: 'public-read'
-  }
-  let result = await settingImage(params)
+    ACL: "public-read",
+  };
+  let result = await settingImage(params, key);
   return result;
 }
 
-async function settingImage(params){
-  return new Promise(async function settingImageProcess(resolve, reject){
+async function settingImage(params, key) {
+  console.log("Entro a setting image")
+  return new Promise(async function settingImageProcess(resolve, reject) {
     try {
-      const { Location } = await s3.upload(params).promise();
-      console.log('Imagen cargada correctamente en S3', Location);
-      console.log(Location)
-      resolve(Location);
+      s3.putObject(params, function (err, data) {
+        if (err) {
+          console.log(err);
+        } else {
+          const params = {
+            Bucket: "users-image-cervezaapp",
+            Key: key,
+            Expires: 31540000, // tiempo en segundos antes de que la URL prefirmada expire
+          };
+          const url = s3.getSignedUrl("getObject", params);
+          resolve({url: url, keyBucket: key})
+        }
+      });
     } catch (error) {
-      console.error('Error al cargar la imagen en S3', error);
+      console.error("Error al cargar la imagen en S3", error);
       throw error;
     }
-  })
+  });
+}
+
+function deletingImageBucket(key){
+  const params = {
+    Bucket: "users-image-cervezaapp",
+    Key: key
+  }
+  s3.deleteObject(params, function(error, data) {
+    if (error) { 
+      console.log(error, error.stack); 
+    } else {
+        console.log(data);
+    }         
+  });
 }
 
 export { createUserService };
