@@ -2,7 +2,6 @@ import express from "express";
 import bodyParser from "body-parser";
 import amqp from "amqplib";
 import * as userController from "./src/UserController.js"
-//import { hole, adios } from "./src/prueba.js"
 
 let content;
 

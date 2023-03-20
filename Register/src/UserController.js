@@ -7,8 +7,4 @@ async function createUserController(userDetails){
     return result;
 }
 
-async function setUserImage(userDetails){
-
-}
-
 export { createUserController }
