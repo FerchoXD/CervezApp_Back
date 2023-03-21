@@ -2,6 +2,7 @@ import express from "express";
 import bodyParser from "body-parser";
 import amqp from "amqplib";
 import multer from "multer";
+import { verifyToken } from "./Login/src/Security/Security.js";
 
 const app = express();
 
@@ -77,6 +78,10 @@ app.post("/register", upload.single("my-file") ,async (req, res) => {
     }
   
 });
+
+app.get("/prueba", verifyToken, (req, res) => {
+  res.send({msg: "Funciono"})
+})
 
 app.get("/login", async (req, res) => {
   const channel = await createConnection();

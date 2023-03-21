@@ -1,12 +1,19 @@
 import bcrypt, { hash } from "bcrypt";
+import AWS from "aws-sdk";
 import { userModel } from "../../Models/UserModel.js";
+import * as Security from "./Security/Security.js"
 
 async function loginUserService(user) {
   let result = await findUser(user);
-  console.log("Vengo de buscar el usuario");
   if (result !== null) {
     let comparing = await comparingPassword(user.password, result.password);
-    return response = decide(comparing)
+    const userInfo = {
+        id: result.dataValues.id,
+        username: result.dataValues.name
+    }
+    let token = await setToken(userInfo, Security.secretKey, Security.options);
+    let response = decide(comparing, result, token)
+    return response;
   } else {
     return {
       status: 400,
@@ -22,15 +29,16 @@ async function findUser(user) {
 }
 
 async function comparingPassword(password, passwordHasheada) {
-  await bcrypt.compare(password, passwordHasheada);
+  return await bcrypt.compare(password, passwordHasheada);
 }
 
-function decide(comparing){
+function decide(comparing, result, token){
     if(comparing){
         return({
             status: 200,
             name: result.dataValues.name,
-            image: result.dataValues.image
+            image: result.dataValues.image,
+            token: token
         })
     }else{
         return({
@@ -38,6 +46,10 @@ function decide(comparing){
             message: "Contraseña Incorrecta"
         })
     }
+}
+
+async function setToken(userInfo, secretKey, options){
+    return await Security.generateToken(userInfo, secretKey, options)
 }
 
 export { loginUserService };
