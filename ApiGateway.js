@@ -38,8 +38,9 @@ async function createConnection() {
   channel.assertQueue("registro");
   channel.assertQueue("registroRespuesta")
   channel.assertQueue('registroImagen')
-  channel.assertQueue('registroImagenRespuesta')
+  channel.assertQueue('registroImagenRespuesta')//Verificar si se esta usando esta cola
   channel.assertQueue("login");
+  channel.assertQueue('loginRespuesta')
   return channel;
 }
 
@@ -77,11 +78,40 @@ app.post("/register", upload.single("my-file") ,async (req, res) => {
   
 });
 
+app.get("/login", async (req, res) => {
+  const channel = await createConnection();
+  let queueLogin = "login"
+  const request = {
+    email: req.body.email,
+    password: req.body.password
+  }
+  const sent = channel.sendToQueue(queueLogin, Buffer.from(JSON.stringify(request)))
+  sent ? console.log(`Enviando mensaje a la cola "${queueLogin}"`, request) : console.log("Fallo todo")
+  let response = await consumeQueue2(channel);
+  console.log("Recibo en Api Gateway")
+  console.log(response)
+  res.send(response)
+})
+
 //Estas son funciones preventivas
 
 async function consumeQueue(channel){
   return new Promise(async function consumingQueue(resolve, reject) {
     await channel.consume('registroRespuesta', async (messageReceived) => {
+      console.log("Consume Queue")
+      console.log(messageReceived)
+      content = JSON.parse(messageReceived.content.toString());
+      channel.ack(messageReceived);
+      console.log(content)
+      await channel.close();
+      resolve(content)
+    })
+  })
+}
+
+async function consumeQueue2(channel){
+  return new Promise(async function consumingQueue(resolve, reject) {
+    await channel.consume('loginRespuesta', async (messageReceived) => {
       console.log("Consume Queue")
       console.log(messageReceived)
       content = JSON.parse(messageReceived.content.toString());

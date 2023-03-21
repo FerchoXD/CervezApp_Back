@@ -26,14 +26,6 @@ async function createConnection() {
   return channel;
 }
 
-createConnection()
-  .then(() => {
-    console.log("Funcionando");
-  })
-  .catch((error) => {
-    console.log(error);
-  });
-
 const channel = await createConnection()
 
 channel.consume('registro', async (message) => {
@@ -49,6 +41,8 @@ channel.consume('registro', async (message) => {
     const sent = await channel.sendToQueue('registroRespuesta', Buffer.from(JSON.stringify(result), {persistent: true}))
     sent ? console.log(`Enviando mensaje de respuesta a la cola `, message) : console.log("Fallo todo");
 })
+
+//Verificar si se esta usando
 
 channel.consume('registroImagenRespuesta', async (message) => {
   content = JSON.parse(message.content.toString())

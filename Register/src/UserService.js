@@ -1,12 +1,9 @@
 import bcrypt, { hash } from "bcrypt";
-import { userModel } from "./UserModel.js";
+import { userModel } from "../../Models/UserModel.js";
 import fs from "fs";
 import path, { resolve } from "path";
 import emailValidator from "email-validator";
-import dotenv from "dotenv";
 import AWS from "aws-sdk";
-
-dotenv.config({ path: "./src/AWS/Credentials/.env" });
 
 AWS.config.update({
   //accessKeyId: "{aqui ira tu access key}",
@@ -101,8 +98,6 @@ function validarCorreo(email) {
 
 async function crear(userModel, newUser) {
   console.log("Entro a la funcion de crear del servicio");
-  console.log(newUser);
-  console.log(newUser.KeyBucket)
   return await new Promise(async function creando(resolve, reject) {
     try{
       const result = await userModel.create(newUser).catch((error) => {console.log("Se controlo la promesa")})
