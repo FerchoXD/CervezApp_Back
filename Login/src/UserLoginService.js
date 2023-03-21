@@ -3,6 +3,15 @@ import AWS from "aws-sdk";
 import { userModel } from "../../Models/UserModel.js";
 import * as Security from "./Security/Security.js"
 
+AWS.config.update({
+    //accessKeyId: "{aqui ira tu access key}",
+    //secretAccessKey: "{aqui ira tu secret key}"",
+    //region: "{aqui ira tu region}",
+  });
+  
+
+const s3 = new AWS.S3();
+
 async function loginUserService(user) {
   let result = await findUser(user);
   if (result !== null) {
@@ -12,7 +21,8 @@ async function loginUserService(user) {
         username: result.dataValues.name
     }
     let token = await setToken(userInfo, Security.secretKey, Security.options);
-    let response = decide(comparing, result, token)
+    console.log(result.dataValues.KeyBucket)
+    let response = decide(comparing, result, token, result.dataValues.KeyBucket)
     return response;
   } else {
     return {
@@ -32,12 +42,15 @@ async function comparingPassword(password, passwordHasheada) {
   return await bcrypt.compare(password, passwordHasheada);
 }
 
-function decide(comparing, result, token){
+async function decide(comparing, result, token, key){
     if(comparing){
+        let image = await getImage(key)
+        console.log("Regreso de getImage")
+        console.log(image)
         return({
             status: 200,
             name: result.dataValues.name,
-            image: result.dataValues.image,
+            image: image,
             token: token
         })
     }else{
@@ -46,6 +59,16 @@ function decide(comparing, result, token){
             message: "Contraseña Incorrecta"
         })
     }
+}
+
+async function getImage(key){
+    const params = {
+        Bucket: "users-image-cervezaapp",
+        Key: key,
+        Expires: 31540000,
+    }
+    const url = await s3.getSignedUrl("getObject", params)
+    return url;
 }
 
 async function setToken(userInfo, secretKey, options){

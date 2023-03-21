@@ -11,6 +11,7 @@ AWS.config.update({
   //region: "{aqui ira tu region}",
 });
 
+
 const s3 = new AWS.S3();
 
 const params = {
