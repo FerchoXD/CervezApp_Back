@@ -88,9 +88,7 @@ app.get("/login", async (req, res) => {
   const sent = channel.sendToQueue(queueLogin, Buffer.from(JSON.stringify(request)))
   sent ? console.log(`Enviando mensaje a la cola "${queueLogin}"`, request) : console.log("Fallo todo")
   let response = await consumeQueue2(channel);
-  console.log("Recibo en Api Gateway")
-  console.log(response)
-  res.send(response)
+  res.status(response.status).send({ User: response})
 })
 
 //Estas son funciones preventivas
