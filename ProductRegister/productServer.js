@@ -43,6 +43,8 @@ channel.consume('registroProducto', async (message) => {
     sent ? console.log('Enviando mensae de respuesta de cola', message) : console.log("error")
 })
 
+
+
 channel.consume('registroImagenRespuesta' , async(message)=>{
     content = JSON.parse(message.content.toString())
     console.log("Mensaje recibido desde la cola")
