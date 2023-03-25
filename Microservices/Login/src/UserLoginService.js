@@ -1,16 +1,7 @@
 import bcrypt, { hash } from "bcrypt";
-import AWS from "aws-sdk";
-import { userModel } from "../../Models/UserModel.js";
+import { userModel } from "../../../Models/UserModel.js";
 import * as Security from "./Security/Security.js"
-
-AWS.config.update({
-    //accessKeyId: "{aqui ira tu access key}",
-    //secretAccessKey: "{aqui ira tu secret key}"",
-    //region: "{aqui ira tu region}",
-  });
-  
-
-const s3 = new AWS.S3();
+import { s3 } from "../../.././AWS/aws.js"
 
 async function loginUserService(user) {
   let result = await findUser(user);

@@ -49,7 +49,7 @@ const userModel = db.define( 'user', {
 
 db.sync()
     .then(() => {
-        console.log("Tablas Creadas")
+        console.log("Tablas de Usuario creadas correctamente")
     })
     .catch((error) => {
         console.log("Error al crear las tablas: " + error)

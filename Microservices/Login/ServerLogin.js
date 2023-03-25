@@ -1,7 +1,9 @@
 import express from "express";
 import bodyParser from "body-parser";
-import amqp from "amqplib";
 import * as UserLoginController from "./src/UserLoginController.js"
+
+//
+import { createConnection } from "../../RabbitMQ/ConnectionRabbitMQ.js"
 
 const app = express();
 
@@ -19,16 +21,12 @@ let content;
 
 //RabbitMq
 
-async function createConnection() {
-    const connection = await amqp.connect("amqp://localhost");
-    const channel = await connection.createChannel();
-    channel.assertQueue("registro");
-    return channel;
-}
-  
-const channel = await createConnection()
+const channel = await createConnection();
+
 let queueLogin = "login"
 let queuResponseLogin = "loginRespuesta"
+
+
 channel.consume(queueLogin, async(message) => {
     content = JSON.parse(message.content.toString())
     console.log(content)
@@ -39,4 +37,3 @@ channel.consume(queueLogin, async(message) => {
     const sent = channel.sendToQueue(queuResponseLogin, Buffer.from(JSON.stringify(result)))
     sent ? console.log(`Enviando mensaje de respuesta a la cola loginRespuesta `, message) : console.log("Fallo todo")
 })
-

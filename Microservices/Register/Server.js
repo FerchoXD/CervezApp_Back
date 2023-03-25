@@ -1,7 +1,8 @@
 import express from "express";
 import bodyParser from "body-parser";
-import amqp from "amqplib";
 import * as userController from "./src/UserController.js"
+
+import { createConnection } from "../../RabbitMQ/ConnectionRabbitMQ.js";
 
 let content;
 
@@ -18,13 +19,6 @@ app.listen(3001, (req, res) => {
 });
 
 //RabbitMq
-
-async function createConnection() {
-  const connection = await amqp.connect("amqp://localhost");
-  const channel = await connection.createChannel();
-  channel.assertQueue("registro");
-  return channel;
-}
 
 const channel = await createConnection()
 

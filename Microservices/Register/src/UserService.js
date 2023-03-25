@@ -1,35 +1,15 @@
 import bcrypt, { hash } from "bcrypt";
-import { userModel } from "../../Models/UserModel.js";
+import { userModel } from "../../../Models/UserModel.js";
 import fs from "fs";
 import path, { resolve } from "path";
 import emailValidator from "email-validator";
-import AWS from "aws-sdk";
 
-AWS.config.update({
-  //accessKeyId: "{aqui ira tu access key}",
-  //secretAccessKey: "{aqui ira tu secret key}"",
-  //region: "{aqui ira tu region}",
-});
-
-
-const s3 = new AWS.S3();
-
-const params = {
-  Bucket: "users-image-cervezaapp",
-  ACL: "public-read",
-};
-
-s3.createBucket(params, function (err, data) {
-  if (err) {
-    console.log("Error al crear el bucket", err);
-  } else {
-    console.log("Bucket creado correctamente", data.Location);
-  }
-});
+import { s3, sns } from "../../../AWS/aws.js"
 
 const saltRounds = 10;
 
 async function createUserService(userDetails) {
+  console.log("Entro aca de create del service de user")
   const correoValidado = validarCorreo(userDetails.email);
   const ext = path.extname(userDetails.image);
   const filepath = "src/Files/Images/" + userDetails.image;
@@ -48,6 +28,7 @@ async function createUserService(userDetails) {
     const response = await crear(userModel, newUser);
     if(response !== undefined){
       deleteImageServer(filepath)
+      await suscribeEmail(userDetails.email)
       return response;
     }else{
       deletingImageBucket(key)
@@ -158,6 +139,23 @@ function deletingImageBucket(key){
         console.log(data);
     }         
   });
+}
+
+async function suscribeEmail(email){
+  console.log("Funcion Suscribe Email")
+  let params = {
+    Protocol: 'EMAIL', 
+    TopicArn: 'arn:aws:sns:us-east-1:240106434588:CervezApp',
+    Endpoint: email
+  };
+  sns.subscribe(params, (err, data) => {
+    if (err) {
+        console.log("Algo ha salido mal dentro de aca de sns suscribe")
+        console.log(err);
+    } else {
+        console.log(data);
+    }
+});
 }
 
 export { createUserService };
