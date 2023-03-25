@@ -1,6 +1,7 @@
 import express from "express";
 import bodyParser from "body-parser";
 import multer from "multer";
+import cors from "cors"
 import { Server as SocketIOServer } from 'socket.io';
 import { createServer } from 'http';
 import { createConnection } from "./RabbitMQ/ConnectionRabbitMQ.js";
@@ -12,7 +13,13 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
 const server = createServer(app);
-const io = new SocketIOServer(server);
+const io = new SocketIOServer(server, {
+    cors:{
+        origin:'http://localhost:5173'
+    }
+});
+
+app.use(cors())
 
 let socketLogin = io.of('/login')
 let socketRegister = io.of('/register')

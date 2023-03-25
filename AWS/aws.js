@@ -6,6 +6,7 @@ AWS.config.update({
   //region: "{aqui ira tu region}",
 });
 
+
 const s3 = new AWS.S3();
 const sns = new AWS.SNS();
 
@@ -21,7 +22,5 @@ s3.createBucket(paramsUser, function (err, data) {
     console.log("Bucket creado correctamente", data.Location);
   }
 });
-
-
 
 export { s3, sns }
