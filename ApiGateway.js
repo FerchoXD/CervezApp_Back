@@ -1,11 +1,11 @@
 import express from "express";
+import rateLimit from "express-rate-limit";
 import bodyParser from "body-parser";
 import multer from "multer";
-import cors from "cors"
+import cors from "cors";
 import { Server as SocketIOServer } from 'socket.io';
 import { createServer } from 'http';
 import { createConnection } from "./RabbitMQ/ConnectionRabbitMQ.js";
-
 const app = express();
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
@@ -20,9 +20,20 @@ const io = new SocketIOServer(server, {
 });
 
 app.use(cors())
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
+app.use(express.urlencoded({ extended: false }));
+app.use(express.json());
+await createConnection()
 
 let socketLogin = io.of('/login')
 let socketRegister = io.of('/register')
+
+const limiter = rateLimit({
+    windowMs: 60 * 1000, // 1 minuto
+    max: 3, // Límite de 100 solicitudes por minuto
+    message: "Has excedido el límite de solicitudes por minuto. Por favor, inténtalo de nuevo más tarde."
+  });
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -39,7 +50,7 @@ const upload = multer(
 
 const router = express.Router();
 
-router.route('/user/login').get(async(req, res) => {
+router.route('/user/login').post(limiter, async(req, res) => {
     const channel = await createConnection();
     let queueRequest = "login"
     let queueResponse = "loginRespuesta"
@@ -57,7 +68,7 @@ router.route('/user/login').get(async(req, res) => {
     res.end()
 })
 
-router.route('/user/register').post(upload.single("my-file") ,async(req, res)=>{
+router.route('/user/register').post(limiter, upload.single("my-file") ,async(req, res)=>{
   console.log(req)
   const channel = await createConnection();
 
@@ -78,7 +89,7 @@ router.route('/user/register').post(upload.single("my-file") ,async(req, res)=>{
   
     try {
       let response = await consumeQueue(channel, queueResponse);
-      console.log("***");
+      console.log("*");
       console.log(response);
       res.status(201).send(response);
       console.log("Finalizo el proceso")
