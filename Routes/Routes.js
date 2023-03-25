@@ -1,8 +1,7 @@
 import express from "express"
 import multer from "multer";
-
 import { createConnection } from "../RabbitMQ/ConnectionRabbitMQ.js"
-import { io } from "../ApiGateway.js"
+import { app, io } from "../Settings.js";
 
 let socketLogin = io.of('/login')
 let socketRegister = io.of('/register')
@@ -87,5 +86,7 @@ async function consumeQueue(channel, queueResponse){
       })
     })
   }
+
+app.use(router)
 
 export { router }
