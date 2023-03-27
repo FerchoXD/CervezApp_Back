@@ -6,6 +6,8 @@ import cors from "cors";
 import { Server as SocketIOServer } from 'socket.io';
 import { createServer } from 'http';
 import { createConnection } from "./RabbitMQ/ConnectionRabbitMQ.js";
+import { verifyToken } from "./Microservices/Login/src/Security/Security.js"
+
 const app = express();
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
@@ -44,9 +46,22 @@ const storage = multer.diskStorage({
   },
 });
 
+const storageProducts = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "Microservices/Register-Product/src/Files/Products");
+  },
+  filename: function (req, file, cb) {
+    cb(null, file.originalname);
+  },
+});
+
 const upload = multer(
     {storage: storage}
 );
+
+const uploadProducts = multer(
+  {storage: storageProducts}
+)
 
 const router = express.Router();
 
@@ -69,9 +84,7 @@ router.route('/user/login').post(limiter, async(req, res) => {
 })
 
 router.route('/user/register').post(limiter, upload.single("my-file") ,async(req, res)=>{
-  console.log(req)
   const channel = await createConnection();
-
   let queueRequest = "registro";
   let queueResponse = "registroRespuesta"
 
@@ -100,6 +113,25 @@ router.route('/user/register').post(limiter, upload.single("my-file") ,async(req
       res.status(500).send({ error: "Ocurrió un error en la prueba" });
       socketRegister.emit('badRegister', { status: 500, message: "Ocurrio un error en el registro" })
     }
+})
+
+router.route('/product/newProduct').post(verifyToken, limiter, uploadProducts.single('my-product'), async(req, res)=>{
+    const channel = await createConnection();
+    let queueRequest = "newProductRequest";
+    let queueResponse = "newProductResponse"
+    let newProduct = {
+        name: req.body.name,
+        size: req.body.size,
+        unit: req.body.unit,
+        stock: req.body.stock,
+        brand: req.body.brand,
+        price: req.body.price,
+        KeyBucket: req.file.originalname
+    }
+    const sent = await channel.sendToQueue(queueRequest, Buffer.from(JSON.stringify(newProduct)))
+    sent ? console.log(`Enviando mensaje a la cola "${queueRequest}"`, newProduct) : console.log("Fallo todo");
+    let response = await consumeQueue(channel, queueResponse);
+    res.status(response.status).send(response)
 })
 
 async function consumeQueue(channel, queueResponse){

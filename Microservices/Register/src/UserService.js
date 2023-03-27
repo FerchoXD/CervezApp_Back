@@ -33,7 +33,7 @@ async function createUserService(userDetails) {
     }else{
       deletingImageBucket(key)
       deleteImageServer(filepath)
-      return {status: false, message: "El correo que estas usando ya existe"}
+      return {status: 409, message: "El correo que estas usando ya existe"}
     }
   } else {
     fs.unlink(filepath, (error) => {
@@ -86,7 +86,7 @@ async function crear(userModel, newUser) {
       return resolve(result)
     }catch{
       console.log("Algo sucedio mal dentro de la funcion crear y cai en el catch")
-      return reject({status: false, message: "El correo que estas usando ya existe"})
+      return reject({status: 409, message: "El correo que estas usando ya existe"})
     }
   });
 }

@@ -35,16 +35,3 @@ channel.consume('registro', async (message) => {
     const sent = await channel.sendToQueue('registroRespuesta', Buffer.from(JSON.stringify(result), {persistent: true}))
     sent ? console.log(`Enviando mensaje de respuesta a la cola `, message) : console.log("Fallo todo");
 })
-
-//Verificar si se esta usando
-
-channel.consume('registroImagenRespuesta', async (message) => {
-  content = JSON.parse(message.content.toString())
-  console.log("Mensaje Recibido desde la cola registro")
-  let result = await userController.createUserController(content)
-
-  console.log("Vengo del controller")
-  console.log(result)
- 
-  channel.sendToQueue('registroRespuesta', Buffer.from(JSON.stringify(result), {persistent: true}))
-})

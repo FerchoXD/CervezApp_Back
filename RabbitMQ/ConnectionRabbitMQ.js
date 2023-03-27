@@ -7,6 +7,8 @@ async function createConnection() {
     channel.assertQueue("registroRespuesta")
     channel.assertQueue("login");
     channel.assertQueue('loginRespuesta')
+    channel.assertQueue('newProductRequest')
+    channel.assertQueue('newProductResponse')
     return channel;
 }
 

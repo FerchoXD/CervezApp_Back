@@ -6,7 +6,6 @@ AWS.config.update({
   //region: "{aqui ira tu region}",
 });
 
-
 const s3 = new AWS.S3();
 const sns = new AWS.SNS();
 
@@ -15,7 +14,20 @@ const paramsUser = {
   ACL: "public-read",
 };
 
+const paramsProduct = {
+  Bucket: "products-image-cervezaapp",
+  ACL: "public-read",
+};
+
 s3.createBucket(paramsUser, function (err, data) {
+  if (err) {
+    console.log("Error al crear el bucket de usuarios", err);
+  } else {
+    console.log("Bucket creado correctamente", data.Location);
+  }
+});
+
+s3.createBucket(paramsProduct, function (err, data) {
   if (err) {
     console.log("Error al crear el bucket de usuarios", err);
   } else {
