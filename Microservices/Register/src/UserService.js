@@ -30,7 +30,7 @@ async function createUserService(userDetails) {
     return {
       status: 400,
       message:
-        "Verifica que tu correo que proporcionaste existe o que haya subido una imagen",
+        "Verifica que tu correo que proporcionaste existe",
     };
   }
 }
