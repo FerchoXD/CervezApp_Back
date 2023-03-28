@@ -25,5 +25,5 @@ channel.consume('newProductRequest', async(message) => {
     console.log("Mensaje de la cola registroProducto")
     console.log(content)
     let product = await productController.registerProductController(content)
-    const sent = channel.sendToQueue("newProductResponse", Buffer.from(JSON.stringify(product), {persistent: true}))
+    channel.sendToQueue("newProductResponse", Buffer.from(JSON.stringify(product), {persistent: true}))
 })

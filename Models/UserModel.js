@@ -20,12 +20,6 @@ const userModel = db.define( 'user', {
         type: DataTypes.STRING,
         allowNull: false
     },
-    image:{
-        type: DataTypes.STRING
-    },
-    KeyBucket:{
-        type: DataTypes.STRING
-    },
     createdAt:{
         type: DataTypes.DATE,
         defaultValue: Date.now,

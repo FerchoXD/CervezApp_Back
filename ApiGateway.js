@@ -83,7 +83,7 @@ router.route('/user/login').post(limiter, async(req, res) => {
     res.end()
 })
 
-router.route('/user/register').post(limiter, upload.single("my-file") ,async(req, res)=>{
+router.route('/user/register').post(limiter, async(req, res)=>{
   const channel = await createConnection();
   let queueRequest = "registro";
   let queueResponse = "registroRespuesta"
@@ -91,9 +91,7 @@ router.route('/user/register').post(limiter, upload.single("my-file") ,async(req
     const message = {
       name:  req.body.name,
       email: req.body.email,
-      password: req.body.password,
-      image: req.file.originalname
-    };
+      password: req.body.password    };
     
     const sent = await channel.sendToQueue(queueRequest, Buffer.from(JSON.stringify(message)),
       { persistent: true }
@@ -104,14 +102,15 @@ router.route('/user/register').post(limiter, upload.single("my-file") ,async(req
       let response = await consumeQueue(channel, queueResponse);
       console.log("*");
       console.log(response);
-      res.status(201).send(response);
+      res.status(response.status).send(response);
       console.log("Finalizo el proceso")
-      res.end();
       socketRegister.emit('newRegister', response)
+      res.end();
     } catch (error) {
       console.log("Error en la prueba: ", error);
       res.status(500).send({ error: "Ocurrió un error en la prueba" });
       socketRegister.emit('badRegister', { status: 500, message: "Ocurrio un error en el registro" })
+      res.end();
     }
 })
 
