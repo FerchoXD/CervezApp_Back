@@ -30,6 +30,7 @@ await createConnection()
 
 let socketLogin = io.of('/login')
 let socketRegister = io.of('/register')
+let socketRegisterProduct = io.of('/newProduct')
 
 const limiter = rateLimit({
     windowMs: 60 * 1000, // 1 minuto
@@ -98,7 +99,6 @@ router.route('/user/register').post(limiter, async(req, res)=>{
     );
     sent ? console.log(`Enviando mensaje a la cola "${queueRequest}"`, message) : console.log("Fallo todo");
   
-    try {
       let response = await consumeQueue(channel, queueResponse);
       console.log("*");
       console.log(response);
@@ -106,12 +106,7 @@ router.route('/user/register').post(limiter, async(req, res)=>{
       console.log("Finalizo el proceso")
       socketRegister.emit('newRegister', response)
       res.end();
-    } catch (error) {
-      console.log("Error en la prueba: ", error);
-      res.status(500).send({ error: "Ocurrió un error en la prueba" });
-      socketRegister.emit('badRegister', { status: 500, message: "Ocurrio un error en el registro" })
-      res.end();
-    }
+    
 })
 
 router.route('/product/newProduct').post(verifyToken, limiter, uploadProducts.single('my-product'), async(req, res)=>{
@@ -130,7 +125,11 @@ router.route('/product/newProduct').post(verifyToken, limiter, uploadProducts.si
     const sent = await channel.sendToQueue(queueRequest, Buffer.from(JSON.stringify(newProduct)))
     sent ? console.log(`Enviando mensaje a la cola "${queueRequest}"`, newProduct) : console.log("Fallo todo");
     let response = await consumeQueue(channel, queueResponse);
+    console.log("Soy de api gateway")
+    console.log(response)
+    socketRegisterProduct.emit('newProduct', response)
     res.status(response.status).send(response)
+    res.end()
 })
 
 async function consumeQueue(channel, queueResponse){
