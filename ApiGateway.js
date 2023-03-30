@@ -35,6 +35,7 @@ let socketRegister = io.of("/register");
 let socketRegisterProduct = io.of("/newProduct");
 let socketSearchProduct = io.of("/searchProduct");
 let socketPayProduct = io.of("/pay")
+let socketGetProduct = io.of("/getProduct")
 
 const limiter = rateLimit({
   windowMs: 60 * 1000, // 1 minuto
@@ -222,7 +223,7 @@ router.route("/product/search").get(verifyToken, limiter, async (req, res) => {
   }
 });
 
-router.route('/product/pay').post(async(req, res) => {
+router.route('/product/pay').post(verifyToken, async(req, res) => {
   const channel = await createConnection();
   let queueRequest = "payProductRequest";
   let queueResponse = "payProductResponse";
@@ -241,6 +242,21 @@ router.route('/product/pay').post(async(req, res) => {
     socketPayProduct.emit('orden', response)
     res.send(response);
     res.end()
+})
+
+router.route('/product/all').get(async (req, res) => {
+  const channel = await createConnection();
+  let queueRequest = "getAllProductRequest";
+  let queueResponse = "getAllProductResponse";
+  const solicitud = {
+    status: true
+  }
+  channel.sendToQueue(queueRequest, Buffer.from(JSON.stringify(solicitud)))
+  let response = await consumeQueue(channel, queueResponse);
+  console.log(response)
+  socketGetProduct.emit('getProduct', response)
+  res.send(response)
+  res.end()
 })
 
 async function consumeQueue(channel, queueResponse) {

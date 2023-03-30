@@ -11,8 +11,8 @@ async function createConnection() {
     channel.assertQueue('newProductResponse')
     channel.assertQueue('searchProductRequest')
     channel.assertQueue('searchProductResponse')
-
-
+    channel.assertQueue('getAllProductRequest')
+    channel.assertQueue('getAllProductResponse')
     channel.assertQueue('payProductRequest')
     channel.assertQueue('payProductResponse')
     return channel;

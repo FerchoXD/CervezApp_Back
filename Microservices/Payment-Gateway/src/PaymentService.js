@@ -1,7 +1,7 @@
 import axios from "axios"
 
-const CLIENT_ID = "ASkWB9cqoRt1E_zkjM5oHhqZG1b3Vau3y4mYQRBrSAaat5Du6tHLTw1RfElkyaCyjllNfpDU1PfONhvh"
-const SECRET = "EMlJnDYVvrrj--O6cs6CJ5az1l8edhn3sneiR5lJFVz-VKzqVcJA95LENf0LclomxgvbKqs9YHosXXyb"
+const CLIENT_ID = "aqui ira tu client de paypal"
+const SECRET = "aqui ira tu secret de paypal"
 
 const auth = { user: CLIENT_ID, pass: SECRET }
 
