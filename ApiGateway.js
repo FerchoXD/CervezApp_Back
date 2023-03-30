@@ -21,6 +21,8 @@ const io = new SocketIOServer(server, {
   },
 });
 
+export { io }
+
 app.use(cors());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
@@ -32,6 +34,7 @@ let socketLogin = io.of("/login");
 let socketRegister = io.of("/register");
 let socketRegisterProduct = io.of("/newProduct");
 let socketSearchProduct = io.of("/searchProduct");
+let socketPayProduct = io.of("/pay")
 
 const limiter = rateLimit({
   windowMs: 60 * 1000, // 1 minuto
@@ -218,6 +221,27 @@ router.route("/product/search").get(verifyToken, limiter, async (req, res) => {
     res.end();
   }
 });
+
+router.route('/product/pay').post(async(req, res) => {
+  const channel = await createConnection();
+  let queueRequest = "payProductRequest";
+  let queueResponse = "payProductResponse";
+  const product = {
+    name: req.body.name,
+    brand: req.body.brand,
+    size: req.body.size,
+    unit: req.body.unit,
+    price: req.body.price,
+    quantity: req.body.quantity
+  }
+  channel.sendToQueue(queueRequest, Buffer.from(JSON.stringify(product)))
+  let response = await consumeQueue(channel, queueResponse);
+    console.log("Soy de api gateway de product pay");
+    console.log(response);
+    socketPayProduct.emit('orden', response)
+    res.send(response);
+    res.end()
+})
 
 async function consumeQueue(channel, queueResponse) {
   return new Promise(async function consumingQueue(resolve, reject) {

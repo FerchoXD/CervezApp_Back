@@ -1,7 +1,7 @@
 import amqp from "amqplib";
 
 async function createConnection() {
-    const connection = await amqp.connect("amqp://localhost");
+    const connection = await amqp.connect('amqp://fer:1234@52.71.157.124:5672');
     const channel = await connection.createChannel();
     channel.assertQueue("registro");
     channel.assertQueue("registroRespuesta")
@@ -11,6 +11,10 @@ async function createConnection() {
     channel.assertQueue('newProductResponse')
     channel.assertQueue('searchProductRequest')
     channel.assertQueue('searchProductResponse')
+
+
+    channel.assertQueue('payProductRequest')
+    channel.assertQueue('payProductResponse')
     return channel;
 }
 
