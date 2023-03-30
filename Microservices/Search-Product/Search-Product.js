@@ -13,7 +13,7 @@ app.use(bodyParser.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
-app.listen(3004, (req, res) => {
+app.listen(3004, "0.0.0.0", (req, res) => {
   console.log("SERVER RUNNING IN http://localhost:3004");
 });
 

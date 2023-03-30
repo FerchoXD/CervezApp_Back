@@ -244,7 +244,7 @@ router.route('/product/pay').post(verifyToken, async(req, res) => {
     res.end()
 })
 
-router.route('/product/all').get(async (req, res) => {
+router.route('/product/all').get(verifyToken, limiter,async (req, res) => {
   const channel = await createConnection();
   let queueRequest = "getAllProductRequest";
   let queueResponse = "getAllProductResponse";

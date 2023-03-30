@@ -38,6 +38,6 @@ app.get('/cancel-payment', async(req, res) => {
     res.status(410).send({status: 410, message:"La compra se detuvo"})
 })
 
-app.listen(3005, (req, res) => {
+app.listen(3005,"0.0.0.0", (req, res) => {
   console.log("SERVER RUNNING IN http://localhost:3005");
 });
